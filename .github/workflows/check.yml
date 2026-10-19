@@ -23,3 +23,32 @@ jobs:
           for key in ('id', 'name', 'version', 'plugin_api'):
               assert manifest[key] == catalog[key], key
           PY
+
+  linux-distributions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: archlinux:latest
+            family: arch
+          - image: fedora:latest
+            family: fedora
+    container: ${{ matrix.image }}
+    steps:
+      - name: Install test dependencies
+        shell: bash
+        run: |
+          if [[ '${{ matrix.family }}' == arch ]]; then
+            pacman -Syu --noconfirm --needed git python lua shadow util-linux
+          else
+            dnf install -y git python3 lua shadow-utils util-linux
+          fi
+          useradd --create-home plugin-test
+      - uses: actions/checkout@v4
+      - name: Test as an ordinary desktop user
+        shell: bash
+        run: |
+          runuser -u plugin-test -- python3 -B -m unittest discover -s tests -v
+          runuser -u plugin-test -- lua tests/test_ui.lua
+          bash -n install.sh installers/arch.sh installers/fedora.sh

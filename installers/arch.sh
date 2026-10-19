@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/install.sh" --setup-system "$@"
+exec "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/install.sh" --setup-system --distro arch "$@"

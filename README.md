@@ -1,6 +1,8 @@
 # Noctalia Tailscale
 
-Widget paska i panel Tailscale dla **Noctalia 5.x**, plugin API ≥ 31. Przygotowany pod lokalnie zainstalowaną Noctalię 5.3.0. Starsza Noctalia Shell 4.x używa QML i nie jest obsługiwana.
+[English installation guide](README.en.md)
+
+Widget paska i panel Tailscale dla **Noctalia 5.x**, plugin API ≥ 31. Dla użytkowników Arch Linux, Omarchy, innych pochodnych Archa oraz Fedory z DNF. Nie wymaga Omarchy ani konta autora. Sprawdzony z Noctalią 5.3.0. Starsza Noctalia Shell 4.x używa QML i nie jest obsługiwana.
 
 Funkcje: połączenie i rozłączenie, logowanie przez link HTTPS (otwarcie lub skopiowanie), wybór exit node wraz ze statusem dostępności, dostęp do LAN przy użyciu exit node, akceptowanie tras podsieci, DNS Tailscale, blokowanie połączeń przychodzących, ogłaszanie tras IPv4/IPv6 i udostępnianie własnego exit node. Kliknięcie adresu kopiuje IP.
 
@@ -8,25 +10,46 @@ Funkcje: połączenie i rozłączenie, logowanie przez link HTTPS (otwarcie lub 
 
 Najpierw zainstaluj Noctalię 5.x zgodnie z [oficjalną instrukcją](https://docs.noctalia.dev/noctalia/getting-started/installation/). Ten instalator nie zastępuje powłoki pulpitu.
 
-Z katalogu pobranego repozytorium uruchom jako zwykły użytkownik:
+Pobierz repozytorium i uruchom instalator jako ten użytkownik, który uruchamia Noctalię (bez poprzedzania całego skryptu `sudo`):
 
 ```bash
-# Arch Linux i pochodne
-./installers/arch.sh
-
-# Fedora
-./installers/fedora.sh
-
-# Same pliki pluginu, jeżeli zależności i uprawnienia są już skonfigurowane
+git clone https://github.com/Jan-Bladek/noctalia-tailscale.git
+cd noctalia-tailscale
 ./install.sh
-
-# Podgląd komend bez wykonywania zmian
-./install.sh --setup-system --dry-run
 ```
 
-Instalatory systemowe wymagają interaktywnego terminala i `sudo`. Instalują Tailscale, Python i xdg-utils, włączają usługę `tailscaled` oraz nadają bieżącemu użytkownikowi rolę operatora Tailscale. Arch wykonuje pełne `pacman -Syu`, unikając częściowej aktualizacji. Fedora pobiera plik repozytorium RPM z `pkgs.tailscale.com` tylko gdy Tailscale nie jest jeszcze zainstalowany.
+Jedno polecenie automatycznie wykrywa Arch/Fedorę przez `ID` i `ID_LIKE`. Dostępne są również jawne warianty:
 
-Pliki trafiają do `${XDG_DATA_HOME:-$HOME/.local/share}/noctalia/plugins/tailscale`. Istniejący katalog jest kopiowany przed aktualizacją do `${XDG_STATE_HOME:-$HOME/.local/state}/noctalia/plugin-backups`, poza katalogiem wykrywania pluginów. Starsze kopie `tailscale.backup.*` są tam automatycznie przenoszone, aby nie zastępowały nowego kodu. W Noctalii włącz **Settings → Plugins → Jan-Bladek/tailscale**, a następnie dodaj do paska **Jan-Bladek/tailscale:status**. Jeżeli plugin jeszcze nie pojawił się na liście, uruchom ponownie Noctalię.
+```bash
+./installers/arch.sh       # Arch, Omarchy, EndeavourOS, CachyOS, Manjaro
+./installers/fedora.sh     # Fedora z DNF 4 lub DNF 5
+./install.sh --dry-run     # podgląd bez zmian
+./install.sh --plugin-only # tylko pliki wtyczki, bez sudo i zmian systemowych
+```
+
+Aktualizacja istniejącej instalacji:
+
+```bash
+git pull --ff-only
+./install.sh --plugin-only
+```
+
+Instalatory systemowe wymagają interaktywnego terminala i `sudo`. Instalują Tailscale, Python i xdg-utils, włączają usługę `tailscaled` oraz nadają bieżącemu użytkownikowi rolę operatora Tailscale. Arch wykonuje pełne `pacman -Syu`, unikając częściowej aktualizacji. Fedora używa [oficjalnego repozytorium Tailscale](https://pkgs.tailscale.com/stable/). Jeżeli plik repozytorium nie istnieje, pobiera go do pliku tymczasowego i instaluje po udanym pobraniu; doinstalowuje curl, jeśli go brakuje. Nie wymaga wtyczki `dnf config-manager`, dzięki czemu ta sama procedura działa z DNF 4 i DNF 5.
+
+Instalator wyznacza użytkownika przez `id -un`, nie przez nazwę wpisaną w kodzie ani zmienną `$USER`. Domyślna ścieżka to `${XDG_DATA_HOME:-$HOME/.local/share}/noctalia/plugins/tailscale`; `NOCTALIA_DATA_HOME` ma pierwszeństwo przed `XDG_DATA_HOME`, a `NOCTALIA_STATE_HOME` przed `XDG_STATE_HOME`, zgodnie z zachowaniem Noctalii. Ścieżki muszą być absolutne; katalogi ze spacjami są obsługiwane. Istniejący katalog jest kopiowany przed aktualizacją do `${XDG_STATE_HOME:-$HOME/.local/state}/noctalia/plugin-backups`, poza katalogiem wykrywania pluginów. Starsze kopie `tailscale.backup.*` są tam automatycznie przenoszone, aby nie zastępowały nowego kodu. W Noctalii włącz **Settings → Plugins → Jan-Bladek/tailscale**, a następnie dodaj do paska **Jan-Bladek/tailscale:status**. Jeżeli plugin jeszcze nie pojawił się na liście, uruchom ponownie Noctalię.
+
+Identyfikator `Jan-Bladek/tailscale` jest stałą nazwą autora/projektu w systemie pluginów. Nie oznacza konta użytkownika i nie należy go zmieniać przy instalacji. Logowanie, tailnet, adresy IP i exit nodes są odczytywane z lokalnego demona Tailscale.
+
+Tailscale ma jedną rolę operatora na demon. Jeżeli należy już do innego użytkownika, instalator nie zastąpi jej bez jawnej opcji:
+
+```bash
+./install.sh --skip-operator     # zachowaj aktualnego operatora
+./install.sh --replace-operator  # przekaż tę rolę bieżącemu użytkownikowi
+```
+
+`--skip-operator` nie nadaje nowych uprawnień: przyciski zarządzania wymagają istniejących uprawnień operatora. Wtyczka nie tworzy osobnego konta Tailscale dla każdego użytkownika systemowego.
+
+Fedora Atomic (Silverblue, Kinoite i podobne) wymaga instalacji Tailscale na hoście przez `rpm-ostree`, ponownego uruchomienia i konfiguracji usługi/operatora przez administratora. Następnie działa `./install.sh --plugin-only`. Automatyczna instalacja systemowa obsługuje Fedorę z DNF, nie instalację wewnątrz Toolbox/Distrobox.
 
 Plugin można też instalować jako źródło Git: katalog główny zawiera `catalog.toml`, a plugin znajduje się w `tailscale/`.
 
@@ -68,7 +91,7 @@ noctalia plugins lint tailscale
 bash -n install.sh installers/arch.sh installers/fedora.sh
 ```
 
-Testy obejmują walidację tras, ochronę przed wstrzyknięciem argumentów, odczyt exit nodes, błędy uprawnień, link logowania po timeout i interakcje panelu z atrapą API Noctalii. W wersji 1.1.0 sprawdzono połączenie i rozłączenie w działającej sesji Noctalii 5.3.0 na Omarchy, z zachowaniem istniejącego exit node i tras. Sprawdzono także wygląd panelu w sesji oraz aktualizację lokalnej instalacji. Logowanie nowego konta i otwarcie linku sprawdzono testami z atrapami; rzeczywistego konta nie wylogowywano. Instalator Fedory sprawdzono w podglądzie z przykładowym `os-release`; instalacji na prawdziwej Fedorze nie wykonano.
+Testy obejmują walidację tras, ochronę przed wstrzyknięciem argumentów, odczyt exit nodes, błędy uprawnień, link logowania po timeout i interakcje panelu z atrapą API Noctalii. W wersji 1.1.0 sprawdzono połączenie i rozłączenie w działającej sesji Noctalii 5.3.0 na Omarchy, z zachowaniem istniejącego exit node i tras. Sprawdzono także wygląd panelu w sesji oraz aktualizację lokalnej instalacji. Logowanie nowego konta i otwarcie linku sprawdzono testami z atrapami; rzeczywistego konta nie wylogowywano. Testy instalatora wykonują rzeczywiste kopiowanie plików w katalogach tymczasowych, z atrapami poleceń administracyjnych i sieciowych, dla Arch i Fedory oraz użytkownika `alice`. Obejmują własne katalogi Noctalii, spacje w ścieżkach, pobieranie/ponowne użycie repozytorium Fedory i zachowanie istniejącego operatora. CI uruchamia testy również w kontenerach Arch Linux i Fedora. Instalacji systemowej na fizycznej Fedorze nie wykonano.
 
 ## Publikacja repozytorium
 
