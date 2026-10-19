@@ -70,10 +70,10 @@ Testy obejmują walidację tras, ochronę przed wstrzyknięciem argumentów, odc
 
 ## Publikacja repozytorium
 
-Repozytorium Git jest przygotowane lokalnie. Po `gh auth login` uruchom `./publish.sh`: utworzy prywatne repozytorium `noctalia-tailscale` na bieżącym koncie i wyśle gałąź `main`. Jeżeli istnieje już `origin`, wyśle kod do niego.
+Repozytorium Git jest przygotowane lokalnie. Po `gh auth login` uruchom `./publish.sh`: utworzy publiczne repozytorium `noctalia-tailscale` na bieżącym koncie i wyśle gałąź `main`. Jeżeli istnieje już `origin`, wyśle kod do niego.
 
 ## Usunięcie
 
 Wyłącz plugin i usuń widget w ustawieniach Noctalii, następnie usuń wyłącznie katalog pluginu `~/.local/share/noctalia/plugins/tailscale` (lub odpowiednik w `$XDG_DATA_HOME`). Tailscale i jego preferencje są niezależne od pluginu. Aby odebrać rolę operatora, wykonaj `sudo tailscale set --operator=`.
 
-Licencja MIT. Projekt niezależny od Noctalii i Tailscale.
+Licencja [PolyForm Noncommercial 1.0.0](LICENSE): korzystanie, modyfikowanie i udostępnianie kodu do dozwolonych celów niekomercyjnych. Użycie komercyjne wymaga osobnej zgody autora. Pełne warunki, w tym dozwolone zastosowania osobiste i zastosowania określonych organizacji, opisuje LICENSE. Dokumentacja projektu jest udostępniana na tych samych warunkach. Projekt niezależny od Noctalii i Tailscale.
