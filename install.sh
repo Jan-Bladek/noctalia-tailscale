@@ -18,8 +18,20 @@ run() {
 if (( setup )); then
   # Distribution ID is read as data, never evaluated as shell code.
   distro=$(sed -n 's/^ID=//p' /etc/os-release | tr -d '\"')
+  distro_like=$(sed -n 's/^ID_LIKE=//p' /etc/os-release | tr -d "\"'")
+  family=$distro
   case "$distro" in
-    arch|endeavouros|cachyos|manjaro)
+    arch|omarchy|endeavouros|cachyos|manjaro|fedora) ;;
+    *)
+      for parent in $distro_like; do
+        case "$parent" in
+          arch|fedora) family=$parent; break ;;
+        esac
+      done
+      ;;
+  esac
+  case "$family" in
+    arch|omarchy|endeavouros|cachyos|manjaro)
       # A full upgrade avoids unsupported Arch partial upgrades.
       run sudo pacman -Syu --needed tailscale python xdg-utils
       ;;
