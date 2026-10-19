@@ -1,0 +1,25 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y lua5.4
+      - run: python3 -m unittest discover -s tests -v
+      - run: lua tests/test_ui.lua
+      - run: bash -n install.sh installers/arch.sh installers/fedora.sh
+      - name: Validate manifest and catalog consistency
+        run: |
+          python3 - <<'PY'
+          import pathlib, tomllib
+          manifest = tomllib.loads(pathlib.Path('tailscale/plugin.toml').read_text())
+          catalog = tomllib.loads(pathlib.Path('catalog.toml').read_text())['plugin'][0]
+          for key in ('id', 'name', 'version', 'plugin_api'):
+              assert manifest[key] == catalog[key], key
+          PY

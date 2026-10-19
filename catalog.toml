@@ -1,0 +1,12 @@
+[[plugin]]
+id = "Jan-Bladek/tailscale"
+name = "Tailscale"
+version = "1.0.0"
+plugin_api = 24
+author = "Jan-Bladek"
+license = "MIT"
+icon = "network"
+description = "Tailscale connection, browser login, exit nodes and subnet routes."
+dependencies = ["tailscale", "python3", "xdg-open"]
+tags = ["network", "vpn", "tailscale"]
+

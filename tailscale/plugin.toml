@@ -1,0 +1,26 @@
+id = "Jan-Bladek/tailscale"
+name = "Tailscale"
+version = "1.0.0"
+plugin_api = 24
+author = "Jan-Bladek"
+license = "MIT"
+icon = "network"
+description = "Tailscale connection, browser login, exit nodes and subnet routes."
+dependencies = ["tailscale", "python3", "xdg-open"]
+tags = ["network", "vpn", "tailscale"]
+
+[[service]]
+id = "backend"
+entry = "service.luau"
+
+[[widget]]
+id = "status"
+entry = "widget.luau"
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 440
+height = 680
+placement = "attached"
+open_near_click = true
