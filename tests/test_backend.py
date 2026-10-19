@@ -13,7 +13,7 @@ spec.loader.exec_module(b)
 class BackendTests(unittest.TestCase):
     def test_preferences_are_set_individually(self):
         self.assertEqual(b.action_args('acceptRoutes', 'true'), ['set', '--accept-routes=true'])
-        self.assertEqual(b.action_args('connect'), ['up', '--timeout=5s'])
+        self.assertEqual(b.action_args('connect'), ['up'])
         self.assertEqual(b.action_args('disconnect'), ['down'])
         self.assertEqual(b.action_args('exit', ''), ['set', '--exit-node='])
 
@@ -54,6 +54,17 @@ class BackendTests(unittest.TestCase):
         with patch.object(b, 'run', return_value=subprocess.CompletedProcess([], 1, '', 'timeout')), \
              patch.object(b, 'snapshot', return_value={'authUrl': 'https://login.tailscale.com/a/test', 'state': 'NeedsLogin'}):
             self.assertTrue(b.execute('login')['ok'])
+
+    def test_login_python_timeout_still_returns_daemon_url(self):
+        with patch.object(b, 'run', side_effect=subprocess.TimeoutExpired(['tailscale', 'up'], 8)), \
+             patch.object(b, 'snapshot', return_value={'authUrl': 'https://login.tailscale.com/a/test', 'state': 'NeedsLogin'}):
+            self.assertTrue(b.execute('connect')['ok'])
+
+    def test_connect_preserves_existing_preferences(self):
+        with patch.object(b, 'run', return_value=subprocess.CompletedProcess([], 0, '', '')) as run, \
+             patch.object(b, 'snapshot', return_value={'authUrl': '', 'state': 'Running'}):
+            self.assertTrue(b.execute('connect')['ok'])
+        run.assert_called_once_with('up', timeout=8)
 
     def test_run_passes_arguments_without_shell(self):
         with patch.object(b.subprocess, 'run') as run:

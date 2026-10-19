@@ -37,7 +37,7 @@ def snapshot():
         ips = peer.get('TailscaleIPs') or []
         if peer.get('ExitNodeOption') and ips:
             exits.append({'id': peer.get('ID', ''), 'ip': ips[0],
-                          'name': peer.get('HostName') or peer.get('DNSName', '').rstrip('.'),
+                          'name': peer.get('DNSName', '').split('.')[0] or peer.get('HostName', 'Unknown'),
                           'online': bool(peer.get('Online')), 'selected': bool(peer.get('ExitNode'))})
     return {'state': status.get('BackendState', 'Unknown'),
             'hostname': (status.get('Self') or {}).get('HostName', ''),
@@ -59,7 +59,7 @@ FLAGS = {'acceptRoutes': 'accept-routes', 'acceptDns': 'accept-dns',
 
 def action_args(action, value=''):
     if action == 'connect':
-        return ['up', '--timeout=5s']
+        return ['up']
     if action == 'disconnect':
         return ['down']
     if action in FLAGS:
@@ -81,13 +81,20 @@ def action_args(action, value=''):
 def execute(action, value=''):
     if action == 'status':
         return snapshot()
-    # up preserves existing preferences when no preference flags are supplied.
-    # AuthURL is provided by the daemon even while up waits for browser approval.
-    if action == 'login':
-        result = run('up', '--timeout=5s')
+    if action in ('login', 'connect'):
+        # ANY CLI flag (even --timeout) activates up's preference-reset checks.
+        # Bound the child in Python, preserving all daemon preferences.
+        timed_out = False
+        try:
+            result = run('up', timeout=8)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            result = None
         status = snapshot()
         if status['authUrl'] or status['state'] == 'Running':
             return {'ok': True, 'authUrl': status['authUrl']}
+        if timed_out:
+            raise RuntimeError('Connection is still starting. Check daemon health and retry.')
     else:
         result = run(*action_args(action, value))
     if result.returncode:

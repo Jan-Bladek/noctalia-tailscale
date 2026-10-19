@@ -55,11 +55,22 @@ if (( ! dry )); then
   done
 fi
 destination="${XDG_DATA_HOME:-$HOME/.local/share}/noctalia/plugins/tailscale"
+backup_root="${XDG_STATE_HOME:-$HOME/.local/state}/noctalia/plugin-backups"
+# Versions before 1.1 backed up inside the discovery directory. Those copies
+# have the same plugin ID and can override the updated plugin.
+for legacy in "$(dirname -- "$destination")"/tailscale.backup.*; do
+  if [[ -d "$legacy" && -f "$legacy/plugin.toml" ]]; then
+    run mkdir -p -- "$backup_root"
+    run mv -- "$legacy" "$backup_root/$(basename -- "$legacy").migrated.$$"
+  fi
+done
 if [[ -e "$destination" ]]; then
-  run cp -a -- "$destination" "$destination.backup.$(date +%s)"
+  run mkdir -p -- "$backup_root"
+  run cp -a -- "$destination" "$backup_root/tailscale.$(date +%s).$$"
 fi
 run mkdir -p -- "$destination"
-for file in plugin.toml widget.luau panel.luau service.luau backend.py; do
+# Helpers first, entry scripts next, manifest last: hot reloads must find dependencies.
+for file in icons.luau backend.py widget.luau panel.luau service.luau plugin.toml; do
   run install -m 644 -- "$ROOT/tailscale/$file" "$destination/$file"
 done
 printf '\nPlugin destination: %s\n' "$destination"

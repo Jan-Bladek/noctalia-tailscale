@@ -1,7 +1,7 @@
 id = "Jan-Bladek/tailscale"
 name = "Tailscale"
-version = "1.0.0"
-plugin_api = 24
+version = "1.1.0"
+plugin_api = 31
 author = "Jan-Bladek"
 license = "PolyForm-Noncommercial-1.0.0"
 icon = "network"
@@ -20,7 +20,7 @@ entry = "widget.luau"
 [[panel]]
 id = "panel"
 entry = "panel.luau"
-width = 440
-height = 680
+width = 380
+height = 600
 placement = "attached"
 open_near_click = true

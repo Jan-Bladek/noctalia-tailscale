@@ -1,12 +1,18 @@
 local busy = false
 local polling = false
+noctalia.state.set("busy", false)
+noctalia.state.set("error", "")
 local function publishError(message)
     noctalia.state.set("error", message)
 end
 local function invoke(action, value, callback)
     local accepted = noctalia.runAsync({"python3", noctalia.pluginDir() .. "/backend.py", action, value or ""}, function(result)
         local data = noctalia.json.decode(result.stdout or "")
-        if not data then data = {error = result.stderr or "Invalid backend response"} end
+        if not data then
+            local message = result.stderr or ""
+            if message == "" then message = result.timedOut and "Tailscale backend timed out" or "Invalid backend response" end
+            data = {error = message}
+        end
         callback(data)
     end)
     if not accepted then callback({error = "Could not start Tailscale backend"}) end
@@ -34,7 +40,12 @@ noctalia.state.watch("request", function(request)
         busy = false
         noctalia.state.set("busy", false)
         if data.error then publishError(data.error) end
-        if data.authUrl then noctalia.state.set("authUrl", data.authUrl) end
+        if data.authUrl and data.authUrl ~= "" then
+            noctalia.state.set("authUrl", data.authUrl)
+            noctalia.runAsync({"xdg-open", data.authUrl}, function(result)
+                if result.exitCode ~= 0 then publishError("Could not open browser. Use Open login link or Copy link.") end
+            end)
+        end
         update()
     end)
 end)
