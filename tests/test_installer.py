@@ -43,7 +43,7 @@ class InstallerTests(unittest.TestCase):
             state = root / 'state'
             (data / 'noctalia/plugins/tailscale').mkdir(parents=True)
             env = dict(os.environ, XDG_DATA_HOME=str(data), XDG_STATE_HOME=str(state))
-            result = subprocess.run(['bash', str(Path(__file__).parents[1] / 'install.sh'), '--dry-run'],
+            result = subprocess.run(['bash', str(Path(__file__).parents[1] / 'install.sh'), '--plugin-only', '--dry-run'],
                                     text=True, capture_output=True, env=env)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn(str(state / 'noctalia/plugin-backups/tailscale.'), result.stdout)
@@ -58,7 +58,7 @@ class InstallerTests(unittest.TestCase):
             legacy = data / 'noctalia/plugins/tailscale.backup.123'
             legacy.mkdir(parents=True)
             (legacy / 'plugin.toml').write_text('id = "Jan-Bladek/tailscale"')
-            result = subprocess.run(['bash', str(Path(__file__).parents[1] / 'install.sh'), '--dry-run'],
+            result = subprocess.run(['bash', str(Path(__file__).parents[1] / 'install.sh'), '--plugin-only', '--dry-run'],
                                     text=True, capture_output=True,
                                     env=dict(os.environ, XDG_DATA_HOME=str(data), XDG_STATE_HOME=str(state)))
             self.assertEqual(result.returncode, 0, result.stderr)
